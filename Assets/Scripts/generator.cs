@@ -1,28 +1,37 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class generator : MonoBehaviour
 {
     public int dim = 10;
-    List<float[]> points;
+    public GameObject cubeFab;
+    // List<float[]> points;
 
     void Awake(){
         //Initialize the first chunk
-        points = setupPoints();
-        drawPoints(points);
+        drawPoints(setupPoints());
     }
 
     List<float[]> setupPoints(){
+        Debug.Log("setup start");
         List<float[]> tempPoints = new List<float[]>();
+        
+        Debug.Log("pre for loop");
 
-        for (int x = 0; x < dim; x++){
+        for(int x = 0; x < dim; x++){
             for(int z = 0; z < dim; z++){
-                float[] point = {x, 0, z};
+                float[] point = new float[3];
+                point[0] = (float)x;
+                point[1] = 0f;
+                point[2] = (float)z;
                 tempPoints.Add(point);
             }
         }
+        Debug.Log("Done setup");
         return tempPoints;
+        
     }
 
 
@@ -40,7 +49,8 @@ public class generator : MonoBehaviour
     void drawPoints(List<float[]> points){
 
         Debug.Log("At draw");
-
+        // GameObject cube = Instantiate(cubeFab, this.transform, true);
+        // cube.transform.position = new Vector3(0, 0, 2);
         foreach (Transform child in transform) {
             GameObject.Destroy(child.gameObject);
         }
@@ -53,7 +63,7 @@ public class generator : MonoBehaviour
 
             GameObject cube = Instantiate(cubeFab, transform, true);
             cube.transform.position = new Vector3(x, y, z);
-            cube.transform.localScale = new Vector3(sizeMod*slideVal, sizeMod*slideVal, sizeMod*slideVal);
+            // cube.transform.localScale = new Vector3(sizeMod*slideVal, sizeMod*slideVal, sizeMod*slideVal);
         }
     }
     
