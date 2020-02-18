@@ -3,11 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+
 public class generator : MonoBehaviour
 {
-    public int dim = 10;
+    // private int dim = 100;
     public GameObject cubeFab;
-    // List<float[]> points;
+
+
+    private int scale = 35;                 //Size of the output in XZ
+    private int poly = 1;                  //Number of polygons per 1x1 area
+    private int smoothness = 7;             //jagged <= low val, high val => flat
+    private int heightBound = 10;           //height values range from 0 to this value
+    private int centerOffsetX = (scale/2);
+    private int centerOffsetZ = (scale/2);
+    private int freq = scale/smoothness;    //Rate of change in the perlin noise
+    private int dim = scale*poly; 
 
     void Awake(){
         //Initialize the first chunk
@@ -24,7 +34,7 @@ public class generator : MonoBehaviour
             for(int z = 0; z < dim; z++){
                 float[] point = new float[3];
                 point[0] = (float)x;
-                point[1] = 0f;
+                point[1] = getHeight(x,z);
                 point[2] = (float)z;
                 tempPoints.Add(point);
             }
@@ -34,6 +44,10 @@ public class generator : MonoBehaviour
         
     }
 
+    float getHeight(int x, int z){
+        // return (x*x)/6+z/4;
+        return Mathf.PerlinNoise(x/100f, z/100f) * 100;
+    }
 
     // float getHeight(float ix, float iz){
     //     //transform coords to 0-1 range floats
@@ -67,7 +81,11 @@ public class generator : MonoBehaviour
         }
     }
     
-
+    function coordsInWorld(i, center){
+        var throwaway = center;
+        var centerIn_i = dim/2; //TODO: This is only valid for center 0
+        return (i - centerIn_i) * (1/poly);
+    }
     // void ResizeCubes(float modSize){
     //     foreach (Transform child in transform) {
     //         child.transform.localScale = new Vector3(sizeMod*modSize, sizeMod*modSize, sizeMod*modSize);
