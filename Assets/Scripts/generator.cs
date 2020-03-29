@@ -9,57 +9,48 @@ public class generator : MonoBehaviour
     // private int dim = 100;
     public GameObject cubeFab;
 
-
-    public const int scale = 35;                //Chunk width in world
-    private const int poly = 1;                 //Number of polygons per 1x1 area
+    private const int scale = 35;                //Chunk width in world
+    private const int poly = 4;                 //Number of polygons per 1x1 area
     private const int smoothness = 7;           //jagged <= low val, high val => flat
     private const int heightBound = 10;         //height values range from 0 to this value
-    private const int centerX = 5;
-    private const int centerZ = 5;
+    private const int cornerX = 5;
+    private const int cornerZ = 5;
 
     void Awake(){
-
         drawPoints(setupPoints());
     }
 
     List<float[]> setupPoints(){
-        Debug.Log("setup start");
         List<float[]> tempPoints = new List<float[]>();
         
-
-        int freq = scale/smoothness;    //Rate of change in the perlin noise
-        int dim = scale*poly;           //Chunk width in model
+        float freq = scale/smoothness;    //Rate of change in the perlin noise
+        int dim  = (int)scale*poly;           //Chunk width in model
 
         //X and Z are in model coords, where model is the chunk
         for(int x = 0; x < dim; x++){
             for(int z = 0; z < dim; z++){
                 float[] point = new float[3];
-                point[0] = (float)x/poly;
-                point[1] = getHeight(x/poly, z/poly);
-                point[2] = (float)z/poly + center;
+                point[0] = (float)x/poly + cornerX;     //Pass X and Z in world coords
+                point[1] = getHeight((float)x/poly, (float)z/poly, freq);   //Pass XZ to perlin in worl coords, but not shifted
+                point[2] = (float)z/poly + cornerZ;
                 tempPoints.Add(point);
             }
         }
-        Debug.Log("Done setup");
         return tempPoints;
-        
     }
 
-    float getHeight(int x, int z){
-        // return (x*x)/6+z/4;
-        return Mathf.PerlinNoise(x/100f, z/100f) * 100;
+    //INPUT: two coords in world space
+    //OUTPUT: perlin noise in a scale size chunk, affected by freq
+    float getHeight(float x, float z, float freq){
+        //scale/2 is a hacky fix by adding half of scale to undo centering around 0
+        //transform coords to 0-1 range floats
+        float nx = (float)x/scale;
+        float nz = (float)z/scale;
+        float num = Mathf.PerlinNoise(nx*freq, nz*freq);
+        // Debug.Log(nx);
+        num = Mathf.Min(heightBound, num*heightBound);//Stretch the 0_1 output into 0_heightBound
+        return num;
     }
-    //TODO: Decipher this old code
-    // float getHeight(float ix, float iz){
-    //     //transform coords to 0-1 range floats
-    //     //scale/2 is a hacky fix by adding half of scale to undo centering around 0
-    //     var nx = (coordsInWorld(ix, centerOffsetX) + scale/2) /scale;  
-    //     var nz = (coordsInWorld(iz, centerOffsetZ) + scale/2) /scale;
-
-    //     num = p5.noise(nx*freq, nz*freq);
-    //     num = Math.min(heightBound, num*heightBound);//Stretch the 0_1 output into 0_heightBound
-    //     return num;
-    // }
 
     void drawPoints(List<float[]> points){
 
@@ -78,23 +69,8 @@ public class generator : MonoBehaviour
 
             GameObject cube = Instantiate(cubeFab, transform, true);
             cube.transform.position = new Vector3(x, y, z);
-            // cube.transform.localScale = new Vector3(sizeMod*slideVal, sizeMod*slideVal, sizeMod*slideVal);
+            Vector3 cubesize = cubeFab.transform.localScale;
+            cube.transform.localScale = cubesize/(poly);
         }
     }
-    
-    /**
-    i : value of a point
-    center : the target center of generation (say for generating chunks etc)
-    **/
-    double coordsInWorld(float i, float center){
-        double centerIn_i = dim/2; //TODO: This is only valid for center 0?
-        return (i - centerIn_i) * (1/poly);
-    }
-
-
-    // void ResizeCubes(float modSize){
-    //     foreach (Transform child in transform) {
-    //         child.transform.localScale = new Vector3(sizeMod*modSize, sizeMod*modSize, sizeMod*modSize);
-    //     }
-    // }
 }
