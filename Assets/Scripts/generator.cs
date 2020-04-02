@@ -8,19 +8,46 @@ public class generator : MonoBehaviour
 {
     // private int dim = 100;
     public GameObject cubeFab;
+    private int genType = 1;
 
-    private const int scale = 35;                //Chunk width in world
-    private const int poly = 4;                 //Number of polygons per 1x1 area
+    private const int scale = 50;                //Chunk width in world
+    private const int poly = 1;                 //Number of polygons per 1x1 area
     private const int smoothness = 7;           //jagged <= low val, high val => flat
     private const int heightBound = 10;         //height values range from 0 to this value
-    private const int cornerX = 5;
-    private const int cornerZ = 5;
+    private const int cornerX = -25;
+    private const int cornerZ = -25;
 
     void Awake(){
-        drawPoints(setupPoints());
+        List<float[]> points;
+
+        if(genType == 0){
+            points = setupPerlin();
+        }
+        else{
+            points = setupFlat();
+        }
+
+        drawPoints(points);
     }
 
-    List<float[]> setupPoints(){
+    List<float[]> setupFlat(){
+        List<float[]> tempPoints = new List<float[]>();
+        int dim  = (int)scale*poly;
+
+        for(int x = 0; x < dim; x++){
+            for(int z = 0; z < dim; z++){
+                float[] point = new float[3];
+                point[0] = (float)x/poly + cornerX;     //Pass X and Z in world coords
+                point[1] = 0f;
+                point[2] = (float)z/poly + cornerZ;
+                tempPoints.Add(point);
+            }
+        }
+        return tempPoints;
+    }
+
+
+    List<float[]> setupPerlin(){
         List<float[]> tempPoints = new List<float[]>();
         
         float freq = scale/smoothness;    //Rate of change in the perlin noise
